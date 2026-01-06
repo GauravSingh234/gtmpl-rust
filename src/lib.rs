@@ -29,6 +29,15 @@ mod printf;
 mod template;
 mod utils;
 
+#[cfg(feature = "helm-functions")]
+pub mod helm_functions;
+
+#[cfg(feature = "mows-functions")]
+pub mod mows_functions;
+
+#[cfg(feature = "all-functions")]
+pub mod all_functions;
+
 #[doc(inline)]
 pub use crate::template::Template;
 

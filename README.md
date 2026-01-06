@@ -1,13 +1,15 @@
-# gtmpl-rust – Golang Templates for Rust
+# gtmpl-ng – Golang Templates for Rust
 
 [![Latest Version]][crates.io]
 
-[Latest Version]: https://img.shields.io/crates/v/gtmpl.svg
-[crates.io]: https://crates.io/crates/gtmpl
+[Latest Version]: https://img.shields.io/crates/v/gtmpl-ng.svg
+[crates.io]: https://crates.io/crates/gtmpl-ng
 
 ---
 
-[gtmpl-rust] provides the [Golang text/template] engine for Rust. This enables
+This is a fork of [gtmpl-rust] with a fix for incorrect line number tracking in error messages.
+
+[gtmpl-ng] provides the [Golang text/template] engine for Rust. This enables
 seamless integration of Rust application into the world of devops tools around
 [kubernetes], [docker] and whatnot.
 
@@ -16,12 +18,12 @@ seamless integration of Rust application into the world of devops tools around
 Add the following dependency to your Cargo manifest…
 ```toml
 [dependencies]
-gtmpl = "0.7"
+gtmpl-ng = "0.7"
 ```
 
 and look at the docs:
-* [gtmpl at crates.io](https://crates.io/crates/gtmpl)
-* [gtmpl documentation](https://docs.rs/crate/gtmpl)
+* [gtmpl-ng at crates.io](https://crates.io/crates/gtmpl-ng)
+* [gtmpl-ng documentation](https://docs.rs/crate/gtmpl-ng)
 * [golang documentation](https://golang.org/pkg/text/template/)
 
 
@@ -31,7 +33,7 @@ It's not perfect, yet. Help and feedback is more than welcome.
 
 Basic template:
 ```rust
-use gtmpl;
+use gtmpl_ng as gtmpl;
 
 fn main() {
     let output = gtmpl::template("Finally! Some {{ . }} for Rust", "gtmpl");
@@ -42,7 +44,7 @@ fn main() {
 Adding custom functions:
 ```rust
 use gtmpl_value::Function;
-use gtmpl::{FuncError, gtmpl_fn, template, Value};
+use gtmpl_ng::{FuncError, gtmpl_fn, template, Value};
 
 fn main() {
     gtmpl_fn!(
@@ -65,7 +67,7 @@ struct Foo {
 
 fn main() {
     let foo = Foo { bar: 42 };
-    let output = gtmpl::template("The answer is: {{ .bar }}", foo);
+    let output = gtmpl_ng::template("The answer is: {{ .bar }}", foo);
     assert_eq!(&output.unwrap(), "The answer is: 42");
 }
 ```
@@ -74,7 +76,7 @@ Invoking a *method* on a context:
 ```rust
 
 use gtmpl_derive::Gtmpl;
-use gtmpl::{Func, FuncError, Value};
+use gtmpl_ng::{Func, FuncError, Value};
 
 fn plus_one(args: &[Value]) -> Result<Value, FuncError> {
     if let Value::Object(ref o) = &args[0] {
@@ -95,7 +97,7 @@ struct AddMe {
 
 fn main() {
     let add_me = AddMe { num: 42, plus_one };
-    let output = gtmpl::template("The answer is: {{ .plus_one }}", add_me);
+    let output = gtmpl_ng::template("The answer is: {{ .plus_one }}", add_me);
     assert_eq!(&output.unwrap(), "The answer is: 43");
 }
 ```
@@ -118,7 +120,7 @@ there might be some convenient additions:
 
 Enable `gtmpl_dynamic_template` in your `Cargo.toml`:
 ```toml
-[dependencies.gtmpl]
+[dependencies.gtmpl-ng]
 version = "0.7"
 features = ["gtmpl_dynamic_template"]
 
@@ -129,7 +131,7 @@ Now you can have dynamic template names for the `template` action.
 #### Example
 
 ```rust
-use gtmpl::{Context, Template};
+use gtmpl_ng::{Context, Template};
 
 fn main() {
     let mut template = Template::default();
@@ -187,6 +189,7 @@ that feel native. [docker] and [helm] ([kubernetes]) use golang templates and
 it feels more native if tooling around them uses the same.
 
 [gtmpl-rust]: https://github.com/fiji-flo/gtmpl-rust
+[gtmpl-ng]: https://github.com/firstdorsal/gtmpl-rust
 [Golang text/template]: https://golang.org/pkg/text/template/
 [kubernetes]: https://kubernetes.io
 [helm]: https://github.com/kubernetes/helm/blob/master/docs/chart_best_practices/templates.md

@@ -1,6 +1,6 @@
 use anyhow::anyhow;
-use gtmpl_ng::{Func, FuncError, Value};
 use gtmpl_derive::Gtmpl;
+use gtmpl_ng::{Func, FuncError, Value};
 
 fn plus_one(args: &[Value]) -> Result<Value, FuncError> {
     if let Value::Object(ref o) = &args[0] {

@@ -7,7 +7,7 @@
 
 ---
 
-This is a fork of [gtmpl-rust] with a fix for incorrect line number tracking in error messages.
+This is a fork of [gtmpl-rust] with some additional features and fixes.
 
 [gtmpl-ng] provides the [Golang text/template] engine for Rust. This enables
 seamless integration of Rust application into the world of devops tools around
@@ -16,22 +16,24 @@ seamless integration of Rust application into the world of devops tools around
 ## Getting Started
 
 Add the following dependency to your Cargo manifest…
+
 ```toml
 [dependencies]
 gtmpl-ng = "0.7"
 ```
 
 and look at the docs:
-* [gtmpl-ng at crates.io](https://crates.io/crates/gtmpl-ng)
-* [gtmpl-ng documentation](https://docs.rs/crate/gtmpl-ng)
-* [golang documentation](https://golang.org/pkg/text/template/)
 
+-   [gtmpl-ng at crates.io](https://crates.io/crates/gtmpl-ng)
+-   [gtmpl-ng documentation](https://docs.rs/crate/gtmpl-ng)
+-   [golang documentation](https://golang.org/pkg/text/template/)
 
 It's not perfect, yet. Help and feedback is more than welcome.
 
 ## Some Examples
 
 Basic template:
+
 ```rust
 use gtmpl_ng as gtmpl;
 
@@ -42,6 +44,7 @@ fn main() {
 ```
 
 Adding custom functions:
+
 ```rust
 use gtmpl_value::Function;
 use gtmpl_ng::{FuncError, gtmpl_fn, template, Value};
@@ -57,6 +60,7 @@ fn main() {
 ```
 
 Passing a struct as context:
+
 ```rust
 use gtmpl_derive::Gtmpl;
 
@@ -72,7 +76,8 @@ fn main() {
 }
 ```
 
-Invoking a *method* on a context:
+Invoking a _method_ on a context:
+
 ```rust
 
 use gtmpl_derive::Gtmpl;
@@ -106,10 +111,10 @@ fn main() {
 
 This is work in progress. Currently the following features are not supported:
 
-* complex numbers
-* the following functions have not been implemented:
-  * `html`, `js`
-* `printf` is not yet fully stable, but should support all *sane* input
+-   complex numbers
+-   the following functions have not been implemented:
+    -   `html`, `js`
+-   `printf` is not yet fully stable, but should support all _sane_ input
 
 ## Enhancements
 
@@ -119,6 +124,7 @@ there might be some convenient additions:
 ### Helm Template Functions
 
 Enable `helm-functions` to get 152 Helm-compatible template functions:
+
 ```toml
 [dependencies.gtmpl-ng]
 version = "0.7"
@@ -141,6 +147,7 @@ fn main() {
 ### Mows Template Functions
 
 Enable `mows-functions` to get 3 additional mows-specific functions:
+
 ```toml
 [dependencies.gtmpl-ng]
 version = "0.7"
@@ -149,12 +156,13 @@ features = ["mows-functions"]
 
 ```rust
 use gtmpl_ng::mows_functions::MOWS_FUNCTIONS;
-// mowsRandomString, mowsDigest, mowsJoindomain
+// mowsRandomString, mowsDigest, mowsJoinDomain
 ```
 
 ### All Functions
 
 Enable `all-functions` to get both Helm and mows functions:
+
 ```toml
 [dependencies.gtmpl-ng]
 version = "0.7"
@@ -172,6 +180,7 @@ fn main() {
 ### Dynamic Template
 
 Enable `gtmpl_dynamic_template` in your `Cargo.toml`:
+
 ```toml
 [dependencies.gtmpl-ng]
 version = "0.7"
@@ -205,6 +214,7 @@ fn main() {
 ```
 
 The following syntax is used:
+
 ```
 {{template (pipeline)}}
 	The template with the name evaluated from the pipeline (parenthesized) is
@@ -222,10 +232,10 @@ handy `derive` macro to generate the `From` implementation for `Value`.
 
 See:
 
-* [gtmpl_value at crates.io](https://crates.io/crate/gtmpl_value)
-* [gtmpl_value documentation](https://docs.rs/crate/gtmpl_value)
-* [gtmpl_derive at crates.io](https://crates.io/crate/gtmpl_derive)
-* [gtmpl_derive documentation](https://docs.rs/crate/gtmpl_derive)
+-   [gtmpl_value at crates.io](https://crates.io/crate/gtmpl_value)
+-   [gtmpl_value documentation](https://docs.rs/crate/gtmpl_value)
+-   [gtmpl_derive at crates.io](https://crates.io/crate/gtmpl_derive)
+-   [gtmpl_derive documentation](https://docs.rs/crate/gtmpl_derive)
 
 ## Why do we need this?
 

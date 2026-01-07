@@ -3,15 +3,82 @@ use gtmpl_value::{FuncError, Value};
 use std::{fmt, num::ParseIntError, string::FromUtf8Error};
 use thiserror::Error;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct ErrorContext {
     pub name: String,
     pub line: usize,
+    pub col: usize,
+    pub len: usize,
 }
 
 impl fmt::Display for ErrorContext {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}:{}", self.name, self.line)
+        write!(f, "{}:{}:{}:{}", self.name, self.line, self.col, self.len)
+    }
+}
+
+/// A structured error with location and optional cause chain
+#[derive(Debug)]
+pub struct StructuredError {
+    pub context: ErrorContext,
+    pub message: String,
+    pub cause: Option<Box<StructuredError>>,
+}
+
+impl StructuredError {
+    pub fn new(
+        name: impl ToString,
+        line: usize,
+        col: usize,
+        len: usize,
+        message: impl ToString,
+    ) -> Self {
+        Self {
+            context: ErrorContext {
+                name: name.to_string(),
+                line,
+                col,
+                len,
+            },
+            message: message.to_string(),
+            cause: None,
+        }
+    }
+
+    pub fn with_cause(mut self, cause: StructuredError) -> Self {
+        self.cause = Some(Box::new(cause));
+        self
+    }
+
+    /// Iterate through the error chain
+    pub fn chain(&self) -> ErrorChainIter<'_> {
+        ErrorChainIter {
+            current: Some(self),
+        }
+    }
+}
+
+pub struct ErrorChainIter<'a> {
+    current: Option<&'a StructuredError>,
+}
+
+impl<'a> Iterator for ErrorChainIter<'a> {
+    type Item = &'a StructuredError;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let current = self.current?;
+        self.current = current.cause.as_deref();
+        Some(current)
+    }
+}
+
+impl fmt::Display for StructuredError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "template: {}:{}", self.context, self.message)?;
+        if let Some(ref cause) = self.cause {
+            write!(f, "\n  caused by: {}", cause)?;
+        }
+        Ok(())
     }
 }
 
@@ -34,11 +101,19 @@ pub enum ParseError {
 }
 
 impl ParseError {
-    pub fn with_context(name: impl ToString, line: usize, msg: impl ToString) -> Self {
+    pub fn with_context(
+        name: impl ToString,
+        line: usize,
+        col: usize,
+        len: usize,
+        msg: impl ToString,
+    ) -> Self {
         Self::WithContext(
             ErrorContext {
                 name: name.to_string(),
                 line,
+                col,
+                len,
             },
             msg.to_string(),
         )
@@ -79,6 +154,8 @@ pub enum PrintError {
 
 #[derive(Error, Debug)]
 pub enum ExecError {
+    #[error("{0}")]
+    Structured(StructuredError),
     #[error("{0} is an incomplete or empty template")]
     IncompleteTemplate(String),
     #[error("{0}")]
@@ -125,10 +202,61 @@ pub enum ExecError {
     ArgumentForNonFunction(Nodes),
     #[error("only maps and objects have fields")]
     OnlyMapsAndObjectsHaveFields,
-    #[error("no field {0} for {1}")]
-    NoFiledFor(String, Value),
+    #[error("no field `{0}` in {1}")]
+    NoFieldFor(String, Value),
     #[error("variable {0} not found")]
     VariableNotFound(String),
+}
+
+impl ExecError {
+    /// Wrap an error with location context, preserving the error chain.
+    /// The innermost (original) error location stays as primary,
+    /// outer contexts are added to the cause chain.
+    pub fn with_context(
+        name: impl ToString,
+        line: usize,
+        col: usize,
+        len: usize,
+        error: ExecError,
+    ) -> Self {
+        let new_context = ErrorContext {
+            name: name.to_string(),
+            line,
+            col,
+            len,
+        };
+
+        match error {
+            // If already structured, keep original context as primary,
+            // add new context to the cause chain
+            ExecError::Structured(mut inner) => {
+                let outer_cause = StructuredError {
+                    context: new_context,
+                    message: "while evaluating".to_string(),
+                    cause: inner.cause.take(),
+                };
+                inner.cause = Some(Box::new(outer_cause));
+                ExecError::Structured(inner)
+            }
+            // Convert other errors to structured with this context
+            other => {
+                let structured = StructuredError {
+                    context: new_context,
+                    message: other.to_string(),
+                    cause: None,
+                };
+                ExecError::Structured(structured)
+            }
+        }
+    }
+
+    /// Get the structured error if this is one
+    pub fn as_structured(&self) -> Option<&StructuredError> {
+        match self {
+            ExecError::Structured(s) => Some(s),
+            _ => None,
+        }
+    }
 }
 
 #[derive(Error, Debug)]

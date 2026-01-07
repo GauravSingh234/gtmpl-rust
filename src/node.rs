@@ -40,6 +40,21 @@ macro_rules! nodes {
                     $(Nodes::$name(ref t) => t.pos(),)*
                 }
             }
+            pub fn line(&self) -> usize {
+                match *self {
+                    $(Nodes::$name(ref t) => t.line(),)*
+                }
+            }
+            pub fn col(&self) -> usize {
+                match *self {
+                    $(Nodes::$name(ref t) => t.col(),)*
+                }
+            }
+            pub fn len(&self) -> usize {
+                match *self {
+                    $(Nodes::$name(ref t) => t.len(),)*
+                }
+            }
             pub fn tree(&self) -> TreeId {
                 match *self {
                     $(Nodes::$name(ref t) => t.tree(),)*
@@ -99,6 +114,9 @@ pub type TreeId = usize;
 pub trait Node: Display {
     fn typ(&self) -> &NodeType;
     fn pos(&self) -> Pos;
+    fn line(&self) -> usize;
+    fn col(&self) -> usize;
+    fn len(&self) -> usize;
     fn tree(&self) -> TreeId;
 }
 
@@ -111,6 +129,9 @@ macro_rules! node {
         pub struct $name {
             typ: NodeType,
             pos: Pos,
+            line: usize,
+            col: usize,
+            len: usize,
             tr: TreeId,
             $(pub $field: $typ,)*
         }
@@ -120,6 +141,15 @@ macro_rules! node {
             }
             fn pos(&self) -> Pos {
                 self.pos
+            }
+            fn line(&self) -> usize {
+                self.line
+            }
+            fn col(&self) -> usize {
+                self.col
+            }
+            fn len(&self) -> usize {
+                self.len
             }
             fn tree(&self) -> TreeId {
                 self.tr
@@ -153,10 +183,13 @@ impl ListNode {
     pub fn append(&mut self, n: Nodes) {
         self.nodes.push(n);
     }
-    pub fn new(tr: TreeId, pos: Pos) -> ListNode {
+    pub fn new(tr: TreeId, pos: Pos, line: usize, col: usize, len: usize) -> ListNode {
         ListNode {
             typ: NodeType::List,
             pos,
+            line,
+            col,
+            len,
             tr,
             nodes: vec![],
         }
@@ -187,10 +220,20 @@ impl Display for ListNode {
 node!(TextNode { text: String });
 
 impl TextNode {
-    pub fn new(tr: TreeId, pos: Pos, text: String) -> TextNode {
+    pub fn new(
+        tr: TreeId,
+        pos: Pos,
+        line: usize,
+        col: usize,
+        len: usize,
+        text: String,
+    ) -> TextNode {
         TextNode {
             typ: NodeType::Text,
             pos,
+            line,
+            col,
+            len,
             tr,
             text,
         }
@@ -211,11 +254,21 @@ node!(
 );
 
 impl PipeNode {
-    pub fn new(tr: TreeId, pos: Pos, decl: Vec<VariableNode>) -> PipeNode {
+    pub fn new(
+        tr: TreeId,
+        pos: Pos,
+        line: usize,
+        col: usize,
+        len: usize,
+        decl: Vec<VariableNode>,
+    ) -> PipeNode {
         PipeNode {
             typ: NodeType::Pipe,
             tr,
             pos,
+            line,
+            col,
+            len,
             decl,
             cmds: vec![],
         }
@@ -258,11 +311,21 @@ impl Display for PipeNode {
 node!(ActionNode { pipe: PipeNode });
 
 impl ActionNode {
-    pub fn new(tr: TreeId, pos: Pos, pipe: PipeNode) -> ActionNode {
+    pub fn new(
+        tr: TreeId,
+        pos: Pos,
+        line: usize,
+        col: usize,
+        len: usize,
+        pipe: PipeNode,
+    ) -> ActionNode {
         ActionNode {
             typ: NodeType::Action,
             tr,
             pos,
+            line,
+            col,
+            len,
             pipe,
         }
     }
@@ -281,10 +344,13 @@ node!(
 );
 
 impl CommandNode {
-    pub fn new(tr: TreeId, pos: Pos) -> CommandNode {
+    pub fn new(tr: TreeId, pos: Pos, line: usize, col: usize, len: usize) -> CommandNode {
         CommandNode {
             typ: NodeType::Command,
             pos,
+            line,
+            col,
+            len,
             tr,
             args: vec![],
         }
@@ -317,12 +383,30 @@ impl IdentifierNode {
             typ: NodeType::Identifier,
             tr: 0,
             pos: 0,
+            line: 0,
+            col: 0,
+            len: 0,
             ident,
         }
     }
 
     pub fn set_pos(&mut self, pos: Pos) -> &IdentifierNode {
         self.pos = pos;
+        self
+    }
+
+    pub fn set_line(&mut self, line: usize) -> &IdentifierNode {
+        self.line = line;
+        self
+    }
+
+    pub fn set_col(&mut self, col: usize) -> &IdentifierNode {
+        self.col = col;
+        self
+    }
+
+    pub fn set_len(&mut self, len: usize) -> &IdentifierNode {
+        self.len = len;
         self
     }
 
@@ -345,11 +429,21 @@ node!(
 );
 
 impl VariableNode {
-    pub fn new(tr: TreeId, pos: Pos, ident: &str) -> VariableNode {
+    pub fn new(
+        tr: TreeId,
+        pos: Pos,
+        line: usize,
+        col: usize,
+        len: usize,
+        ident: &str,
+    ) -> VariableNode {
         VariableNode {
             typ: NodeType::Variable,
             tr,
             pos,
+            line,
+            col,
+            len,
             ident: ident.split('.').map(|s| s.to_owned()).collect(),
         }
     }
@@ -364,11 +458,14 @@ impl Display for VariableNode {
 node!(DotNode {});
 
 impl DotNode {
-    pub fn new(tr: TreeId, pos: Pos) -> DotNode {
+    pub fn new(tr: TreeId, pos: Pos, line: usize, col: usize, len: usize) -> DotNode {
         DotNode {
             typ: NodeType::Dot,
             tr,
             pos,
+            line,
+            col,
+            len,
         }
     }
 }
@@ -388,11 +485,14 @@ impl Display for NilNode {
 }
 
 impl NilNode {
-    pub fn new(tr: TreeId, pos: Pos) -> NilNode {
+    pub fn new(tr: TreeId, pos: Pos, line: usize, col: usize, len: usize) -> NilNode {
         NilNode {
             typ: NodeType::Nil,
             tr,
             pos,
+            line,
+            col,
+            len,
         }
     }
 }
@@ -404,11 +504,21 @@ node!(
 );
 
 impl FieldNode {
-    pub fn new(tr: TreeId, pos: Pos, ident: &str) -> FieldNode {
+    pub fn new(
+        tr: TreeId,
+        pos: Pos,
+        line: usize,
+        col: usize,
+        len: usize,
+        ident: &str,
+    ) -> FieldNode {
         FieldNode {
             typ: NodeType::Field,
             tr,
             pos,
+            line,
+            col,
+            len,
             ident: ident[..]
                 .split('.')
                 .filter_map(|s| {
@@ -437,11 +547,21 @@ node!(
 );
 
 impl ChainNode {
-    pub fn new(tr: TreeId, pos: Pos, node: Nodes) -> ChainNode {
+    pub fn new(
+        tr: TreeId,
+        pos: Pos,
+        line: usize,
+        col: usize,
+        len: usize,
+        node: Nodes,
+    ) -> ChainNode {
         ChainNode {
             typ: NodeType::Chain,
             tr,
             pos,
+            line,
+            col,
+            len,
             node: Box::new(node),
             field: vec![],
         }
@@ -473,11 +593,14 @@ impl Display for ChainNode {
 node!(BoolNode { value: Value });
 
 impl BoolNode {
-    pub fn new(tr: TreeId, pos: Pos, val: bool) -> BoolNode {
+    pub fn new(tr: TreeId, pos: Pos, line: usize, col: usize, len: usize, val: bool) -> BoolNode {
         BoolNode {
             typ: NodeType::Bool,
             tr,
             pos,
+            line,
+            col,
+            len,
             value: Value::from(val),
         }
     }
@@ -511,6 +634,9 @@ impl NumberNode {
     pub fn new(
         tr: TreeId,
         pos: Pos,
+        line: usize,
+        col: usize,
+        len: usize,
         text: String,
         item_typ: &ItemType,
     ) -> Result<NumberNode, NodeError> {
@@ -520,6 +646,9 @@ impl NumberNode {
                     typ: NodeType::Number,
                     tr,
                     pos,
+                    line,
+                    col,
+                    len,
                     is_i64: true,
                     is_u64: true,
                     is_f64: true,
@@ -594,6 +723,9 @@ impl NumberNode {
                     typ: NodeType::Number,
                     tr,
                     pos,
+                    line,
+                    col,
+                    len,
                     is_i64,
                     is_u64,
                     is_f64,
@@ -618,11 +750,22 @@ node!(StringNode {
 });
 
 impl StringNode {
-    pub fn new(tr: TreeId, pos: Pos, orig: String, text: String) -> StringNode {
+    pub fn new(
+        tr: TreeId,
+        pos: Pos,
+        line: usize,
+        col: usize,
+        len: usize,
+        orig: String,
+        text: String,
+    ) -> StringNode {
         StringNode {
             typ: NodeType::String,
             tr,
             pos,
+            line,
+            col,
+            len,
             quoted: orig,
             value: Value::from(text),
         }
@@ -638,11 +781,14 @@ impl Display for StringNode {
 node!(EndNode {});
 
 impl EndNode {
-    pub fn new(tr: TreeId, pos: Pos) -> EndNode {
+    pub fn new(tr: TreeId, pos: Pos, line: usize, col: usize, len: usize) -> EndNode {
         EndNode {
             typ: NodeType::End,
             tr,
             pos,
+            line,
+            col,
+            len,
         }
     }
 }
@@ -656,11 +802,14 @@ impl Display for EndNode {
 node!(ElseNode {});
 
 impl ElseNode {
-    pub fn new(tr: TreeId, pos: Pos) -> ElseNode {
+    pub fn new(pos: Pos, line: usize, col: usize, len: usize) -> ElseNode {
         ElseNode {
             typ: NodeType::Else,
-            tr,
+            tr: 0,
             pos,
+            line,
+            col,
+            len,
         }
     }
 }
@@ -687,6 +836,9 @@ impl BranchNode {
     pub fn new_if(
         tr: TreeId,
         pos: Pos,
+        line: usize,
+        col: usize,
+        len: usize,
         pipe: PipeNode,
         list: ListNode,
         else_list: Option<ListNode>,
@@ -695,6 +847,9 @@ impl BranchNode {
             typ: NodeType::If,
             tr,
             pos,
+            line,
+            col,
+            len,
             pipe,
             list,
             else_list,
@@ -704,6 +859,9 @@ impl BranchNode {
     pub fn new_with(
         tr: TreeId,
         pos: Pos,
+        line: usize,
+        col: usize,
+        len: usize,
         pipe: PipeNode,
         list: ListNode,
         else_list: Option<ListNode>,
@@ -712,6 +870,9 @@ impl BranchNode {
             typ: NodeType::With,
             tr,
             pos,
+            line,
+            col,
+            len,
             pipe,
             list,
             else_list,
@@ -721,6 +882,9 @@ impl BranchNode {
     pub fn new_range(
         tr: TreeId,
         pos: Pos,
+        line: usize,
+        col: usize,
+        len: usize,
         pipe: PipeNode,
         list: ListNode,
         else_list: Option<ListNode>,
@@ -729,6 +893,9 @@ impl BranchNode {
             typ: NodeType::Range,
             tr,
             pos,
+            line,
+            col,
+            len,
             pipe,
             list,
             else_list,
@@ -765,11 +932,22 @@ node!(
 );
 
 impl TemplateNode {
-    pub fn new(tr: TreeId, pos: Pos, name: PipeOrString, pipe: Option<PipeNode>) -> TemplateNode {
+    pub fn new(
+        tr: TreeId,
+        pos: Pos,
+        line: usize,
+        col: usize,
+        len: usize,
+        name: PipeOrString,
+        pipe: Option<PipeNode>,
+    ) -> TemplateNode {
         TemplateNode {
             typ: NodeType::Template,
             tr,
             pos,
+            line,
+            col,
+            len,
             name,
             pipe,
         }
@@ -806,7 +984,7 @@ mod tests {
 
     #[test]
     fn test_clone() {
-        let t1 = TextNode::new(1, 0, "foo".to_owned());
+        let t1 = TextNode::new(1, 0, 1, 1, 3, "foo".to_owned());
         let mut t2 = t1.clone();
         t2.text = "bar".to_owned();
         assert_eq!(t1.to_string(), "foo");
@@ -815,7 +993,7 @@ mod tests {
 
     #[test]
     fn test_end() {
-        let t1 = EndNode::new(1, 0);
+        let t1 = EndNode::new(1, 0, 1, 1, 3);
         assert_eq!(t1.to_string(), "{{end}}");
     }
 }

@@ -17,6 +17,7 @@ struct Variable {
 
 struct State<'a, 'b, T: Write> {
     template: &'a Template,
+    template_name: String,
     writer: &'b mut T,
     node: Option<&'a Nodes>,
     vars: VecDeque<VecDeque<Variable>>,
@@ -54,6 +55,7 @@ impl<'b> Template {
 
         let mut state = State {
             template: self,
+            template_name: self.name.clone(),
             writer,
             node: None,
             vars,
@@ -78,6 +80,16 @@ impl<'b> Template {
 }
 
 impl<'a, 'b, T: Write> State<'a, 'b, T> {
+    fn wrap_error(&self, err: ExecError, node: &Nodes) -> ExecError {
+        ExecError::with_context(
+            &self.template_name,
+            node.line(),
+            node.col(),
+            node.len(),
+            err,
+        )
+    }
+
     fn set_kth_last_var_value(&mut self, k: usize, value: Value) -> Result<(), ExecError> {
         if let Some(last_vars) = self.vars.back_mut() {
             let i = last_vars.len() - k;
@@ -114,17 +126,23 @@ impl<'a, 'b, T: Write> State<'a, 'b, T> {
         self.node = Some(node);
         match *node {
             Nodes::Action(ref n) => {
-                let val = self.eval_pipeline(ctx, &n.pipe)?;
+                let val = self
+                    .eval_pipeline(ctx, &n.pipe)
+                    .map_err(|e| self.wrap_error(e, node))?;
                 if n.pipe.decl.is_empty() {
                     self.print_value(&val)?;
                 }
                 Ok(())
             }
             Nodes::If(_) | Nodes::With(_) => self.walk_if_or_with(node, ctx),
-            Nodes::Range(ref n) => self.walk_range(ctx, n),
+            Nodes::Range(ref n) => self
+                .walk_range(ctx, n)
+                .map_err(|e| self.wrap_error(e, node)),
             Nodes::List(ref n) => self.walk_list(ctx, n),
             Nodes::Text(ref n) => write!(self.writer, "{}", n).map_err(ExecError::IOError),
-            Nodes::Template(ref n) => self.walk_template(ctx, n),
+            Nodes::Template(ref n) => self
+                .walk_template(ctx, n)
+                .map_err(|e| self.wrap_error(e, node)),
             _ => Err(ExecError::UnknownNode(node.clone())),
         }
     }
@@ -160,6 +178,7 @@ impl<'a, 'b, T: Write> State<'a, 'b, T> {
                 vars.push_back(dot);
                 let mut new_state = State {
                     template: self.template,
+                    template_name: name.clone(),
                     writer: self.writer,
                     node: None,
                     vars,
@@ -276,7 +295,7 @@ impl<'a, 'b, T: Write> State<'a, 'b, T> {
     }
 
     fn eval_arg(&mut self, ctx: &Context, node: &Nodes) -> Result<Value, ExecError> {
-        match *node {
+        let result = match *node {
             Nodes::Dot(_) => Ok(ctx.dot.clone()),
             //Nodes::Nil
             Nodes::Field(ref n) => self.eval_field_node(ctx, n, &[], &None), // args?
@@ -289,7 +308,9 @@ impl<'a, 'b, T: Write> State<'a, 'b, T> {
             Nodes::Bool(ref n) => Ok(n.value.clone()),
             Nodes::Number(ref n) => Ok(n.value.clone()),
             _ => Err(ExecError::InvalidArgument(node.clone())),
-        }
+        };
+        // Wrap errors with the argument node's position for better error reporting
+        result.map_err(|e| self.wrap_error(e, node))
     }
 
     fn eval_field_node(
@@ -336,7 +357,7 @@ impl<'a, 'b, T: Write> State<'a, 'b, T> {
             Value::Object(ref o) => o
                 .get(field_name)
                 .cloned()
-                .ok_or_else(|| ExecError::NoFiledFor(field_name.to_string(), receiver.clone())),
+                .ok_or_else(|| ExecError::NoFieldFor(field_name.to_string(), receiver.clone())),
             Value::Map(ref o) => Ok(o.get(field_name).cloned().unwrap_or(Value::NoValue)),
             _ => Err(ExecError::OnlyMapsAndObjectsHaveFields),
         };
@@ -366,7 +387,9 @@ impl<'a, 'b, T: Write> State<'a, 'b, T> {
             Nodes::If(ref n) | Nodes::With(ref n) => &n.pipe,
             _ => return Err(ExecError::ExpectedIfOrWith(node.clone())),
         };
-        let val = self.eval_pipeline(ctx, pipe)?;
+        let val = self
+            .eval_pipeline(ctx, pipe)
+            .map_err(|e| self.wrap_error(e, node))?;
         let truth = is_true(&val);
         if truth {
             match *node {

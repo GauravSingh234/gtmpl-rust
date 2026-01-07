@@ -73,15 +73,17 @@ pub struct Item {
     pub pos: Pos,
     pub val: String,
     pub line: usize,
+    pub col: usize,
 }
 
 impl Item {
-    pub fn new<T: Into<String>>(typ: ItemType, pos: Pos, val: T, line: usize) -> Item {
+    pub fn new<T: Into<String>>(typ: ItemType, pos: Pos, val: T, line: usize, col: usize) -> Item {
         Item {
             typ,
             pos,
             val: val.into(),
             line,
+            col,
         }
     }
 }
@@ -111,6 +113,7 @@ struct LexerStateMachine {
     items_sender: Sender<Item>, // channel of scanned items
     paren_depth: usize,         // nesting depth of ( ) exprs
     line: usize,                // 1+number of newlines seen
+    line_start: Pos,            // position of the start of the current line
 }
 
 #[derive(Debug)]
@@ -147,7 +150,7 @@ impl Iterator for Lexer {
             }
             Err(e) => {
                 self.finished = true;
-                Item::new(ItemType::ItemError, 0, format!("{}", e), 0)
+                Item::new(ItemType::ItemError, 0, format!("{}", e), 0, 0)
             }
         };
         Some(item)
@@ -166,6 +169,7 @@ impl Lexer {
             items_sender: tx,
             paren_depth: 0,
             line: 1,
+            line_start: 0,
         };
         thread::spawn(move || l.run());
         Lexer {
@@ -195,6 +199,7 @@ impl Iterator for LexerStateMachine {
                 self.pos += self.width;
                 if c == '\n' {
                     self.line += 1;
+                    self.line_start = self.pos;
                 }
                 Some(c)
             }
@@ -240,6 +245,11 @@ impl LexerStateMachine {
                 .is_some()
         {
             self.line -= 1;
+            // Find the start of the previous line by searching backwards for newline
+            self.line_start = self.input[..self.pos]
+                .rfind('\n')
+                .map(|i| i + 1)
+                .unwrap_or(0);
         }
     }
 
@@ -256,10 +266,20 @@ impl LexerStateMachine {
         // added 1 to the line count, which was incorrect (e.g., {{ and }} contain
         // no newlines, so they shouldn't increment the line counter).
         let lines = s.chars().filter(|c| *c == '\n').count();
+        // Calculate column as 1-based offset from line start
+        let col = self.start - self.line_start + 1;
         self.items_sender
-            .send(Item::new(t, self.start, s, self.line))
+            .send(Item::new(t, self.start, s, self.line, col))
             .unwrap();
+        // Update line tracking for multiline tokens
         self.line += lines;
+        if lines > 0 {
+            // Find the start of the last line in this token
+            self.line_start = self.input[..self.pos]
+                .rfind('\n')
+                .map(|i| i + 1)
+                .unwrap_or(0);
+        }
         self.start = self.pos;
     }
 
@@ -280,8 +300,15 @@ impl LexerStateMachine {
     }
 
     fn errorf(&mut self, msg: &str) -> State {
+        let col = self.start - self.line_start + 1;
         self.items_sender
-            .send(Item::new(ItemType::ItemError, self.start, msg, self.line))
+            .send(Item::new(
+                ItemType::ItemError,
+                self.start,
+                msg,
+                self.line,
+                col,
+            ))
             .unwrap();
         State::End
     }
@@ -301,6 +328,20 @@ impl LexerStateMachine {
                 self.pos -= trim;
                 if self.pos > self.start {
                     self.emit(ItemType::ItemText);
+                }
+                // Count newlines in the trimmed portion (whether or not text was emitted)
+                // This ensures line numbers stay correct when {{- trims whitespace with newlines
+                if trim > 0 {
+                    let trimmed = &self.input[self.pos..self.pos + trim];
+                    let newlines = trimmed.chars().filter(|c| *c == '\n').count();
+                    if newlines > 0 {
+                        self.line += newlines;
+                        // Find the start of the last line in the trimmed content
+                        self.line_start = self.input[..self.pos + trim]
+                            .rfind('\n')
+                            .map(|i| i + 1)
+                            .unwrap_or(0);
+                    }
                 }
                 self.pos += trim;
                 self.ignore();
@@ -367,7 +408,19 @@ impl LexerStateMachine {
         self.pos += RIGHT_DELIM.len();
 
         if trim {
-            self.pos += ltrim_len(&self.input[self.pos..]);
+            let trim_len = ltrim_len(&self.input[self.pos..]);
+            if trim_len > 0 {
+                let trimmed = &self.input[self.pos..self.pos + trim_len];
+                let newlines = trimmed.chars().filter(|c| *c == '\n').count();
+                if newlines > 0 {
+                    self.line += newlines;
+                    self.line_start = self.input[..self.pos + trim_len]
+                        .rfind('\n')
+                        .map(|i| i + 1)
+                        .unwrap_or(0);
+                }
+                self.pos += trim_len;
+            }
         }
 
         self.ignore();
@@ -383,7 +436,20 @@ impl LexerStateMachine {
         self.pos += RIGHT_DELIM.len();
         self.emit(ItemType::ItemRightDelim);
         if trim {
-            self.pos += ltrim_len(&self.input[self.pos..]);
+            let trim_len = ltrim_len(&self.input[self.pos..]);
+            if trim_len > 0 {
+                let trimmed = &self.input[self.pos..self.pos + trim_len];
+                let newlines = trimmed.chars().filter(|c| *c == '\n').count();
+                if newlines > 0 {
+                    self.line += newlines;
+                    // Find the start of the last line in the trimmed content
+                    self.line_start = self.input[..self.pos + trim_len]
+                        .rfind('\n')
+                        .map(|i| i + 1)
+                        .unwrap_or(0);
+                }
+                self.pos += trim_len;
+            }
             self.ignore();
         }
         State::LexText

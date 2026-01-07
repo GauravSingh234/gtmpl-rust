@@ -14,5 +14,5 @@ use crate::Func;
 pub const MOWS_FUNCTIONS: [(&str, Func); 3] = [
     ("mowsRandomString", crypto::random_string as Func),
     ("mowsDigest", crypto::mows_digest as Func),
-    ("mowsJoindomain", utils::join_domain as Func),
+    ("mowsJoinDomain", utils::join_domain as Func),
 ];

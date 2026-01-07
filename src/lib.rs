@@ -52,7 +52,7 @@ pub use gtmpl_value::FuncError;
 #[doc(inline)]
 pub use gtmpl_value::from_value;
 
-pub use error::TemplateError;
+pub use error::{ErrorContext, ExecError, ParseError, StructuredError, TemplateError};
 pub use gtmpl_value::Value;
 
 /// Provides simple basic templating given just a template sting and context.

